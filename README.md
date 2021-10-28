@@ -15,3 +15,8 @@ curl -X POST -H "Content-Type: application/json" -d '{
 }' https://nf8pz49j09.execute-api.us-east-2.amazonaws.com/summarizetext
 
 Diagram: https://docs.google.com/drawings/d/1AbxKIg0meo-CL7061jxwgVbKeR9yi2SnIabBVnGEsZc/edit
+
+### Inabia API
+
+* https://inabia.ai:8000/docs#/default/PII_extractPII_post
+* Token: SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
