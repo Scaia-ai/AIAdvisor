@@ -20,3 +20,8 @@ Diagram: https://docs.google.com/drawings/d/1AbxKIg0meo-CL7061jxwgVbKeR9yi2SnIab
 
 * https://inabia.ai:8000/docs#/default/PII_extractPII_post
 * Token: SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c
+
+### Submit to Oasis
+* https://lexi.legal/
+* Username: mark@scaia.ai
+* Password: Welcome31415!!
