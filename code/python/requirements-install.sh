@@ -11,4 +11,5 @@ pip install panel==1.2.0
 pip install redlines
 pip install jupyter
 pip install docarray
-pin install uvicorn
+pip install uvicorn
+pip install assemblyai
