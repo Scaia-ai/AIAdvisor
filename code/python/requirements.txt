@@ -1,0 +1,14 @@
+python-dotenv
+openai==0.28.1
+pinecone-client
+langchain==0.0.335
+fastapi
+pydantic
+unstructured
+starlette
+tiktoken
+PyPDF2
+python-multipart
+uvicorn
+boto3
+gunicorn

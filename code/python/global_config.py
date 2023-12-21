@@ -1,0 +1,2 @@
+CASIFY_AI_VERSION = "2.2.4"
+CHAT_GPT_MODEL = "gpt-4"
