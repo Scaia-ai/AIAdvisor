@@ -27,52 +27,16 @@ from langchain.llms import OpenAI
 import shutil
 from pathlib import Path
 from fastapi.responses import JSONResponse
-from boto3 import Session
-from botocore.exceptions import NoCredentialsError
 from fastapi.middleware.cors import CORSMiddleware
 
-# class CloudWatchLogHandler(StreamHandler):
-#     def __init__(self, *args, **kwargs):
-#         super().__init__(*args, **kwargs)
-#         self.session = Session(region_name=os.getenv("AWS_DEFAULT_REGION"))
-#         self.cloudwatch_logs = self.session.client('logs')
-#         self.log_group = os.getenv("AWS_LOG_GROUP")
-#         self.log_stream = f"CasifyAI_{int(time.time())}"
-#
-#     def emit(self, record):
-#             log_message = self.format(record)
-#             try:
-#                response = self.cloudwatch_logs.describe_log_streams(
-#                     logGroupName=self.log_group,
-#                     logStreamNamePrefix=self.log_stream)
-#
-#                log_streams = response.get('logStreams', [])
-#                if not log_streams:
-#                    self.cloudwatch_logs.create_log_stream(
-#                         logGroupName=self.log_group,
-#                         logStreamName=self.log_stream
-#                     )
-#             except Exception as e:
-#                 if "ResourceNotFoundException" in str(e):
-#                     # Log stream doesn't exist, create it
-#                     self.cloudwatch_logs.create_log_stream(
-#                         logGroupName=self.log_group,
-#                         logStreamName=self.log_stream
-#                     )
-#             self.cloudwatch_logs.put_log_events(
-#                 logGroupName=self.log_group,
-#                 logStreamName=self.log_stream,
-#                 logEvents=[{'timestamp': int(record.created * 1000), 'message': log_message}]
-#             )
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("CasifyAI")
-#logger.addHandler(CloudWatchLogHandler())
+logger = logging.getLogger("AIAdvisor")
 
 model = "gpt-4"
 default_index_name = os.getenv("PINECONE_INDEX_NAME")
 
 # Create a file handler which logs even debug messages
-log_file = 'casifyai.log'
+log_file = 'aiadvisor.log'
 fh = logging.FileHandler(log_file)
 fh.setLevel(logging.DEBUG)
 

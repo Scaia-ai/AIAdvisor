@@ -10,5 +10,3 @@ tiktoken
 PyPDF2
 python-multipart
 uvicorn
-boto3
-gunicorn

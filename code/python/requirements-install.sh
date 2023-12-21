@@ -13,3 +13,4 @@ pip install jupyter
 pip install docarray
 pip install uvicorn
 pip install assemblyai
+pip install python-multipart
