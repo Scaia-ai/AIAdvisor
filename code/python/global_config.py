@@ -1,2 +1,3 @@
 AI_ADVISOR_VERSION = "1.0.0"
 CHAT_GPT_MODEL = "gpt-4"
+LOG_FILE_NAME = "aiadvisor.log"

@@ -17,12 +17,11 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import OpenAI
 from langchain.chains.question_answering import load_qa_chain
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.schema import Document
-from langchain.document_loaders import TextLoader
+import global_config
 import logging
 
 
-logger = logging.getLogger("CasifyAI")
+logger = logging.getLogger(global_config.LOG_FILE_NAME)
 
 _ = load_dotenv(find_dotenv())  # read local .env file
 openai.api_key = os.getenv('OPENAI_API_KEY')

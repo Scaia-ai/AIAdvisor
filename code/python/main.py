@@ -1,4 +1,4 @@
-# Main for CasifyAI code
+# Main for AIAdvisor FastAPI
 
 import assemblyai as aai
 import threading
@@ -6,7 +6,7 @@ import os
 from fastapi import FastAPI, UploadFile, Form
 from starlette.responses import RedirectResponse
 from pydantic import BaseModel
-from casify_pinecone_lch import clean_namespace
+from aiadvisor_pinecone_lch import clean_namespace
 from store_document import do_store_document
 from fastapi import HTTPException
 from global_config import AI_ADVISOR_VERSION
