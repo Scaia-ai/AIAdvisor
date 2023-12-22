@@ -1,20 +1,15 @@
 # Main for CasifyAI code
 
-
-import asyncio
-from logging import StreamHandler
 import assemblyai as aai
 import threading
-import time
 import os
-import traceback
 from fastapi import FastAPI, UploadFile, Form
 from starlette.responses import RedirectResponse
 from pydantic import BaseModel
 from casify_pinecone_lch import clean_namespace
 from store_document import do_store_document
 from fastapi import HTTPException
-from global_config import CASIFY_AI_VERSION
+from global_config import AI_ADVISOR_VERSION
 import logging
 import openai
 from langchain.vectorstores import Pinecone
@@ -54,9 +49,9 @@ _ = load_dotenv(find_dotenv())  # read local .env file
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
 app = FastAPI(
-    title="CasifyAI API",
-    description="Talk to ChatGPT and Pinecone using Langchain",
-    version=CASIFY_AI_VERSION
+    title="AIAdvisor",
+    description="AIAdvisor API",
+    version=AI_ADVISOR_VERSION
 )
 
 app.add_middleware(
@@ -73,11 +68,10 @@ class Question(BaseModel):
     case_id: str
 
 
-@app.get("/question_case/", summary="Ask CasifyAI about your case")
+@app.get("/question_case/", summary="Ask AIAdvisor about your case")
 async def ask_question(question: str, case_id: str):
     try:
         logger.info("****************ask question")
-        logger.info(f"Question: {threading.active_count()}")
         _ = load_dotenv(find_dotenv())  # read local .env file
         openai.api_key = os.getenv('OPENAI_API_KEY')
 
@@ -147,7 +141,6 @@ async def ask_question(question: str, case_ids: list[str] = Query(...)):
 
     try:
         logger.info("********** ask question about cases " + str(case_ids))
-        logger.info(f"Start Question: {threading.active_count()}")
         _ = load_dotenv(find_dotenv())  # read local .env file
         openai.api_key = os.getenv('OPENAI_API_KEY')
         for case_id in case_ids:
