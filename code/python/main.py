@@ -175,16 +175,24 @@ async def clean_case_index(case_id: str):
 
 
 @app.post("/store_document/", status_code=201, summary="Store a document for a case")
-async def store_document(case_id: str = Form(...), document: UploadFile = Form(...)):
+async def store_document(case_id: str = Form(...), document: UploadFile = Form(...), document_id: int = Form(...)):
      try:
         logger.info("****************store document")
+        
+         if document_id is None or document_id == 0:
+            source = document.filename
+        else:
+            source = str(document_id)
+            
+        logger.info(f"File Name: {source}")
+
         logger.info(f"Start: {threading.active_count()}")
         content = await document.read()  # Read the file content
         content = content.decode()  # If the file is a text file, convert bytes to string
         doc_length = len(content)
         logger.info("Store a document of length: " + str(doc_length) + " for case: " + str(case_id))
         logger.info(f"Before Store Documents: {threading.active_count()}")
-        number_splits = do_store_document(content, case_id);
+        number_splits = do_store_document(content, case_id, source);
         return {"message": "Document stored successfully", "Number of splits": str(number_splits)}
      except Exception as e:
         logger.exception(e)
@@ -192,10 +200,10 @@ async def store_document(case_id: str = Form(...), document: UploadFile = Form(.
 
 
 @app.post("/store_content/", status_code=201, summary="Store document content for a case")
-async def store_content(case_id: str = Form(...), content: str = Form(...)):
+async def store_content(case_id: str = Form(...), content: str = Form(...), source: str = Form(...)):
     doc_length = len(content)
     logger.info("Store content of length: " + str(doc_length) + " for case: " + str(case_id))
-    number_splits = do_store_document(content, case_id)
+    number_splits = do_store_document(content, case_id, source)
     return {"message": "Content stored successfully", "Number of splits": str(number_splits)}
 
 

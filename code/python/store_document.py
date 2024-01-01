@@ -39,10 +39,8 @@ def filter_strings(documents, max_length=40000):
     return [s for s in documents if len(s.page_content) <= max_length]
 
 
-def do_store_document(content: str, namespace: str):
+def do_store_document(content: str, namespace: str, filename: str):
     logger.info("do_store_document ")
-    logger.info("content")
-    logger.info(content)
     logger.info("namespace: " + namespace)
     temp_file = os.path.join("/tmp", "temp.txt")
     with open(temp_file, 'w') as f:
@@ -69,12 +67,14 @@ def do_store_document(content: str, namespace: str):
             new_doc = Document(page_content=txt)
             docs.append(new_doc)
 
-    logger.info(f"Split: {threading.active_count()}")
+    source = f"[[Source: {filename}]]"
+    logger.info(f"Source: {source}")
+
+    for document in docs:
+        document.page_content = f"{source} {document.page_content}" 
+
     logger.info("Document split into " + str(len(docs)) + " paragraphs completed")
     embeddings = OpenAIEmbeddings(openai_api_key=openai.api_key)
-    logger.info(f"Embeddings {threading.active_count()}")
     Pinecone.from_documents(docs, embeddings, index_name=index_name, namespace=namespace)
-    logger.info(f"After Pinecone {threading.active_count()}")
-    logger.info("Stored in index " + index_name + " namespace " + namespace)
     os.remove(temp_file)
     return str(len(docs))
