@@ -86,7 +86,7 @@ async def ask_question(question: str, case_id: str):
         from langchain.embeddings.openai import OpenAIEmbeddings
         embeddings = OpenAIEmbeddings(openai_api_key=openai.api_key)
 
-       def get_similar_docs(query, namespace, num_sources=10, score=False):
+        def get_similar_docs(query, namespace, num_sources=10, score=False):
             index = Pinecone.from_existing_index(default_index_name, embeddings, namespace=namespace)
             if score:
                 similar_docs = index.similarity_search_with_score(query, k=num_sources, namespace=namespace)
@@ -140,7 +140,7 @@ async def ask_question(question: str, case_ids: list[str] = Query(...)):
         logger.info(type(similar_docs))
         return similar_docs
     
-    def get_answer(query, namespace):
+     def get_answer(query, namespace):
         combined_list = []
         docs = []
         for case_id in case_ids:
@@ -162,7 +162,7 @@ async def ask_question(question: str, case_ids: list[str] = Query(...)):
         sources = list(set(sources))
         return (chain.run(input_documents=combined_list, question=query), sources)
 
-    try:
+     try:
         logger.info("********** ask question about cases " + str(case_ids))
         _ = load_dotenv(find_dotenv())  # read local .env file
         openai.api_key = os.getenv('OPENAI_API_KEY')
@@ -184,10 +184,10 @@ async def ask_question(question: str, case_ids: list[str] = Query(...)):
 
             logger.info("A: " + answer[0])
 
-    except Exception as e:
+     except Exception as e:
         logger.exception(e)
         raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
-    return {"question": question, "answer": answer[0], "sources": answer[1]}
+     return {"question": question, "answer": answer[0], "sources": answer[1]}
 
 
 @app.post("/clean_case_index/", status_code=201, summary="Clean up an index for a case")
@@ -202,7 +202,7 @@ async def store_document(case_id: str = Form(...), document: UploadFile = Form(.
      try:
         logger.info("****************store document")
         
-         if document_id is None or document_id == 0:
+        if document_id is None or document_id == 0:
             source = document.filename
         else:
             source = str(document_id)
@@ -281,3 +281,13 @@ async def transcribe(document: UploadFile = Form(...)):
 async def read_root():
     logger.info("Hello! Redirecting to /doc")
     return RedirectResponse(url='/docs')
+
+
+def get_source(text):
+    tag = "]]"
+    end_index = text.find(tag)
+    if end_index != -1:
+        result = text[0:end_index]
+        result = result.replace('[[Source: ', '')
+        return result
+    return ""
