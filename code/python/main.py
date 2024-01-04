@@ -120,7 +120,7 @@ async def ask_question(question: str, case_id: str):
         answer = get_answer(my_query, namespace)
         print(answer)
 
-        logger.info("A: " + answer)
+        logger.info("A: " + str(answer))
 
     except Exception as e:
         logger.exception(e)
