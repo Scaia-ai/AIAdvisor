@@ -86,34 +86,34 @@ async def ask_question(question: str, case_id: str):
         from langchain.embeddings.openai import OpenAIEmbeddings
         embeddings = OpenAIEmbeddings(openai_api_key=openai.api_key)
 
-       def get_similar_docs(query, namespace, num_sources=10, score=False):
-            index = Pinecone.from_existing_index(default_index_name, embeddings, namespace=namespace)
-            if score:
-                similar_docs = index.similarity_search_with_score(query, k=num_sources, namespace=namespace)
-            else:
-                similar_docs = index.similarity_search(query, k=num_sources, namespace=namespace)
-            logger.info(str(len(similar_docs)) + " similar docs found")
-            return similar_docs
+def get_similar_docs(query, namespace, num_sources=10, score=False):
+    index = Pinecone.from_existing_index(default_index_name, embeddings, namespace=namespace)
+    if score:
+        similar_docs = index.similarity_search_with_score(query, k=num_sources, namespace=namespace)
+    else:
+        similar_docs = index.similarity_search(query, k=num_sources, namespace=namespace)
+    logger.info(str(len(similar_docs)) + " similar docs found")
+    return similar_docs
 
-        def get_answer(query, namespace):
-            docs = []
-            from langchain.llms import OpenAI
-            llm = OpenAI(model_name=model)
-            chain = load_qa_chain(llm, chain_type="stuff")
-            similar_docs_list = get_similar_docs(query, namespace=namespace)
-            if isinstance(similar_docs_list, tuple):
-                docs.extend([t[0] for t in similar_docs_list])
-            else:
-                docs.extend(similar_docs_list)
-            
-            sources = []
-            for element in docs:
-                source = get_source(element.page_content)
-                logger.info(f"Source: {source}")
-                sources.append(source)
+    def get_answer(query, namespace):
+        docs = []
+        from langchain.llms import OpenAI
+        llm = OpenAI(model_name=model)
+        chain = load_qa_chain(llm, chain_type="stuff")
+        similar_docs_list = get_similar_docs(query, namespace=namespace)
+        if isinstance(similar_docs_list, tuple):
+            docs.extend([t[0] for t in similar_docs_list])
+        else:
+            docs.extend(similar_docs_list)
 
-            sources = list(set(sources))
-            return (chain.run(input_documents=similar_docs_list, question=query), sources)
+        sources = []
+        for element in docs:
+            source = get_source(element.page_content)
+            logger.info(f"Source: {source}")
+            sources.append(source)
+
+        sources = list(set(sources))
+        return (chain.run(input_documents=similar_docs_list, question=query), sources)
 
         my_query = str(question)
         logger.info("my_query=" + my_query)
@@ -140,27 +140,27 @@ async def ask_question(question: str, case_ids: list[str] = Query(...)):
         logger.info(type(similar_docs))
         return similar_docs
     
-    def get_answer(query, namespace):
-        combined_list = []
-        docs = []
-        for case_id in case_ids:
-            namespace = case_id
-            logger.info("namespace=" + namespace)
-            llm = OpenAI(model_name=model)
-            chain = load_qa_chain(llm, chain_type="stuff")
-            similar_docs_list = get_similar_docs(query, namespace=namespace)
-            combined_list.extend(similar_docs_list)
-            if isinstance(similar_docs_list, tuple):
-                docs.extend([t[0] for t in similar_docs_list])
-            else:
-                docs.extend(similar_docs_list)
-        sources = []
-        for element in docs:
-            source = get_source(element.page_content)
-            logger.info(f"Source: {source}")
-            sources.append(source)
-        sources = list(set(sources))
-        return (chain.run(input_documents=combined_list, question=query), sources)
+def get_answer(query, namespace):
+    combined_list = []
+    docs = []
+    for case_id in case_ids:
+        namespace = case_id
+        logger.info("namespace=" + namespace)
+        llm = OpenAI(model_name=model)
+        chain = load_qa_chain(llm, chain_type="stuff")
+        similar_docs_list = get_similar_docs(query, namespace=namespace)
+        combined_list.extend(similar_docs_list)
+        if isinstance(similar_docs_list, tuple):
+            docs.extend([t[0] for t in similar_docs_list])
+        else:
+            docs.extend(similar_docs_list)
+    sources = []
+    for element in docs:
+        source = get_source(element.page_content)
+        logger.info(f"Source: {source}")
+        sources.append(source)
+    sources = list(set(sources))
+    return (chain.run(input_documents=combined_list, question=query), sources)
 
     try:
         logger.info("********** ask question about cases " + str(case_ids))
