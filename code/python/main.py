@@ -23,17 +23,22 @@ import shutil
 from pathlib import Path
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+import psutil
+import global_config
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("AIAdvisor")
+logger = logging.getLogger(global_config.LOG_FILE_NAME)
 
-model = "gpt-4"
-default_index_name = os.getenv("PINECONE_INDEX_NAME")
+model = global_config.LLM_MODEL
+_ = load_dotenv(find_dotenv())  # read local .env file
+openai.api_key = os.getenv('OPENAI_API_KEY')
+pinecone.init(
+    api_key=os.getenv('PINECONE_API_KEY'),
+    environment=os.getenv('PINECONE_ENVIRONMENT')
+)
 
-# Create a file handler which logs even debug messages
-log_file = 'aiadvisor.log'
-fh = logging.FileHandler(log_file)
-fh.setLevel(logging.DEBUG)
+fh = logging.FileHandler(global_config.LOG_FILE_NAME)
+fh.setLevel(global_config.LOG_LEVEL)
 
 # Create formatter and add it to the handlers
 formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -43,7 +48,7 @@ fh.setFormatter(formatter)
 logger.addHandler(fh)
 
 # Example logging
-logger.info("Logger is configured to write to a file: " + log_file)
+logger.info("Logger is configured to write to a file: " + global_config.LOG_FILE_NAME)
 
 _ = load_dotenv(find_dotenv())  # read local .env file
 openai.api_key = os.getenv('OPENAI_API_KEY')
@@ -87,7 +92,7 @@ async def ask_question(question: str, case_id: str):
         embeddings = OpenAIEmbeddings(openai_api_key=openai.api_key)
 
         def get_similar_docs(query, namespace, num_sources=10, score=False):
-            index = Pinecone.from_existing_index(default_index_name, embeddings, namespace=namespace)
+            index = Pinecone.from_existing_index(global_config.PINECONE_INDEX, embeddings, namespace=namespace)
             if score:
                 similar_docs = index.similarity_search_with_score(query, k=num_sources, namespace=namespace)
             else:
@@ -131,7 +136,7 @@ async def ask_question(question: str, case_id: str):
 @app.get("/question_cases/", summary="Ask CasifyAI about your multiple cases")
 async def ask_question(question: str, case_ids: list[str] = Query(...)):
     def get_similar_docs(query, namespace, num_sources=10, score=False):
-        index = Pinecone.from_existing_index(default_index_name, embeddings, namespace=namespace)
+        index = Pinecone.from_existing_index(global_config.PINECONE_INDEX, embeddings, namespace=namespace)
         if score:
             similar_docs = index.similarity_search_with_score(query, k=num_sources, namespace=namespace)
         else:
@@ -234,7 +239,7 @@ async def store_content(case_id: str = Form(...), content: str = Form(...), sour
 async def describe_index(index_name: Optional[str] = None):
     try:
         if index_name is None:
-            index_name = default_index_name
+            index_name = global_config.PINECONE_INDEX
         logger.info("Describing index: " + index_name)
         pinecone.init(api_key=os.getenv('PINECONE_API_KEY'), environment=os.getenv('PINECONE_ENVIRONMENT'))
         index = pinecone.Index(index_name)

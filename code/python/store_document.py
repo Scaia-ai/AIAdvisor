@@ -1,16 +1,12 @@
-import asyncio
 import logging
 import os
-import threading
 import openai
 from langchain.document_loaders import TextLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Pinecone
-import pinecone
 from langchain.docstore.document import Document
-from dotenv import load_dotenv, find_dotenv
-
+import global_config
 logger = logging.getLogger("AIAdvisor")
 
 num_splits = 0
@@ -42,18 +38,12 @@ def filter_strings(documents, max_length=40000):
 def do_store_document(content: str, namespace: str, filename: str):
     logger.info("do_store_document ")
     logger.info("namespace: " + namespace)
+    logger.info("index_name = " + str(global_config.PINECONE_INDEX))
     temp_file = os.path.join("/tmp", "temp.txt")
     with open(temp_file, 'w') as f:
         f.write(content)
+        f.close()
 
-    _ = load_dotenv(find_dotenv())  # read local .env file
-    openai.api_key = os.getenv('OPENAI_API_KEY')
-    index_name = os.getenv('PINECONE_INDEX_NAME')
-    pinecone.init(
-        api_key=os.getenv('PINECONE_API_KEY'),
-        environment=os.getenv('PINECONE_ENVIRONMENT')
-    )
-    logger.info(f"Init Pinecone: {threading.active_count()}")
     loader = TextLoader(temp_file)
     documents = loader.load()
     docs = split_docs(documents)
@@ -75,6 +65,6 @@ def do_store_document(content: str, namespace: str, filename: str):
 
     logger.info("Document split into " + str(len(docs)) + " paragraphs completed")
     embeddings = OpenAIEmbeddings(openai_api_key=openai.api_key)
-    Pinecone.from_documents(docs, embeddings, index_name=index_name, namespace=namespace)
+    Pinecone.from_documents(docs, embeddings, index_name=global_config.PINECONE_INDEX, namespace=namespace)
     os.remove(temp_file)
     return str(len(docs))
