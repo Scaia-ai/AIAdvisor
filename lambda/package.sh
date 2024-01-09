@@ -12,7 +12,8 @@ rm -fr lambda_package
 mkdir lambda_package && cd lambda_package
 pip install -r ../requirements.txt -t .
 cp ../lambda_handler.py .
-cp ../../../global_config.py .
+cp ../../../code/python/global_config.py .
+cp ../../../code/python/main.py .
 zip -q -r ../lambda_package.zip .
 cd ..
 aws s3 cp --profile scaia lambda_package.zip s3://casify-lambda/lambda-package.zip
