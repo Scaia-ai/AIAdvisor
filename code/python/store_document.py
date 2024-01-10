@@ -1,5 +1,7 @@
 import logging
 import os
+import time
+
 import openai
 from langchain.document_loaders import TextLoader
 from langchain.text_splitter import CharacterTextSplitter
