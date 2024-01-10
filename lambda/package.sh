@@ -16,5 +16,5 @@ cp ../../../code/python/global_config.py .
 cp ../../../code/python/main.py .
 zip -q -r ../lambda_package.zip .
 cd ..
-aws s3 cp --profile scaia lambda_package.zip s3://casify-lambda/lambda-package.zip
+aws s3 cp --profile scaia lambda_package.zip s3://scaia-lambda/lambda-package.zip
 cd ..
