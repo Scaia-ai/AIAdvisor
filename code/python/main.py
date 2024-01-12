@@ -298,3 +298,4 @@ def get_source(text):
         result = result.replace('[[Source: ', '')
         return result
     return ""
+    
