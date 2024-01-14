@@ -1,7 +1,7 @@
 python-dotenv
-openai==0.28.1
+openai
 pinecone-client
-langchain==0.0.335
+langchain
 fastapi
 pydantic
 unstructured

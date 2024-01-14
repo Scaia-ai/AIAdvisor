@@ -1,30 +1,32 @@
 import logging
 import os
-import time
-
+import tempfile
 import openai
 from langchain.document_loaders import TextLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Pinecone
+import pinecone
 from langchain.docstore.document import Document
+from dotenv import load_dotenv, find_dotenv
 import global_config
+
 logger = logging.getLogger("AIAdvisor")
 
 num_splits = 0
 
-def split_docs(documents, chunk_size=10, chunk_overlap=10):
+def split_texts(texts, chunk_size=10, chunk_overlap=10):
     logger.info("split_docs with " + str(chunk_size) + " and " + str(chunk_overlap))
     # text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
     text_splitter = CharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-    docs = text_splitter.split_documents(documents)
+    docs = text_splitter.split_text(texts)
     global num_splits
     num_splits = len(docs)
     return docs
 
 def find_long_strings(documents, max_length=40000):
     """Find strings in the array longer than a specified length."""
-    return [s for s in documents if len(s.page_content) > max_length]
+    return [s for s in documents if len(s) > max_length]
 
 
 def split_string(input_string, chunk_size=20000):
@@ -34,39 +36,55 @@ def split_string(input_string, chunk_size=20000):
 
 def filter_strings(documents, max_length=40000):
     """Filter strings from the array based on length."""
-    return [s for s in documents if len(s.page_content) <= max_length]
+    return [s for s in documents if len(s) <= max_length]
 
 
-def do_store_document(content: str, namespace: str, filename: str):
+async def do_store_document(content: str, namespace: str, filename: str):
     logger.info("do_store_document ")
     logger.info("namespace: " + namespace)
     logger.info("index_name = " + str(global_config.PINECONE_INDEX))
-    temp_file = os.path.join("/tmp", "temp.txt")
-    with open(temp_file, 'w') as f:
-        f.write(content)
-        f.close()
+    #temp_folder = tempfile.gettempdir()
+    #temp_file = os.path.join(temp_folder, "temp.txt")
+    #with open(temp_file, 'w') as f:
+    #    f.write(content)
+    #    f.close()
 
-    loader = TextLoader(temp_file)
-    documents = loader.load()
-    docs = split_docs(documents)
+    _ = load_dotenv(find_dotenv())  # read local .env file
+    openai.api_key = os.getenv('OPENAI_API_KEY')
+    #loader = TextLoader(temp_file)
+    #documents = loader.load()
+    docs = split_texts(content)
     long_strings = find_long_strings(docs)
     docs = filter_strings(docs)
     logger.info(f"Long strings {str(len(long_strings))}")
 
     for value in long_strings:
-        splitted_strings = split_string(value.page_content)
+        splitted_strings = split_string(value)
         for txt in splitted_strings:
-            new_doc = Document(page_content=txt)
-            docs.append(new_doc)
+            docs.append(txt)
 
     source = f"[[Source: {filename}]]"
     logger.info(f"Source: {source}")
 
     for document in docs:
-        document.page_content = f"{source} {document.page_content}" 
+        document = f"{source} {document}" 
 
     logger.info("Document split into " + str(len(docs)) + " paragraphs completed")
     embeddings = OpenAIEmbeddings(openai_api_key=openai.api_key)
-    Pinecone.from_documents(docs, embeddings, index_name=global_config.PINECONE_INDEX, namespace=namespace)
-    os.remove(temp_file)
+
+    pinecone.init(
+        api_key=os.getenv('PINECONE_API_KEY'),
+        environment=os.getenv('PINECONE_ENVIRONMENT')
+    )
+    
+    Pinecone.from_texts(docs, embeddings, index_name=global_config.PINECONE_INDEX, namespace=namespace, pool_threads=1)
+    #Pinecone.from_documents(docs, embeddings, index_name=global_config.PINECONE_INDEX, namespace=namespace, pool_threads=2)
+    
+    pinecone.init(
+        api_key=os.getenv('PINECONE_API_KEY'),
+        environment=os.getenv('PINECONE_ENVIRONMENT')
+    )
+
+    logger.info("Stored in index " + global_config.PINECONE_INDEX + " namespace " + namespace)
+    #os.remove(temp_file)
     return str(len(docs))
