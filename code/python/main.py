@@ -23,7 +23,8 @@ import shutil
 from pathlib import Path
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-import psutil
+import time
+import uvicorn
 import global_config
 from logging import StreamHandler
 from boto3 import Session
@@ -346,3 +347,20 @@ def get_source(text):
         result = result.replace('[[Source: ', '')
         return result
     return ""
+
+def check_condition_and_restart():
+    while True:
+        # Replace this with your custom condition
+        if your_custom_condition():
+            os.system("kill -HUP `cat uvicorn.pid`")
+        time.sleep(10)  # Check every 10 seconds
+
+def your_custom_condition():
+    print("***************************Reload")
+    # Define your custom condition here
+    return True
+# if __name__ == "__main__":
+#     threading.Thread(target=check_condition_and_restart, daemon=True).start()
+#     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=False, pidfile='uvicorn.pid')
+
+
