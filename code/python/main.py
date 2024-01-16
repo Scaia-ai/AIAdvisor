@@ -26,6 +26,9 @@ from fastapi.middleware.cors import CORSMiddleware
 import time
 import uvicorn
 import global_config
+from logging import StreamHandler
+from boto3 import Session
+import time
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(global_config.LOG_FILE_NAME)
@@ -38,18 +41,49 @@ pinecone.init(
     environment=os.getenv('PINECONE_ENVIRONMENT')
 )
 
-fh = logging.FileHandler(global_config.LOG_FILE_NAME)
-fh.setLevel(global_config.LOG_LEVEL)
+if os.getenv('AWS_LOG_GROUP') is not None:
+    class CloudWatchLogHandler(StreamHandler):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.session = Session(region_name=os.getenv("AWS_DEFAULT_REGION"))
+            self.cloudwatch_logs = self.session.client('logs')
+            self.log_group = os.getenv("AWS_LOG_GROUP")
+            self.log_stream = f"AIAdvisor_{int(time.time())}"
 
-# Create formatter and add it to the handlers
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-fh.setFormatter(formatter)
+        def emit(self, record):
+                log_message = self.format(record)
+                try:
+                    response = self.cloudwatch_logs.describe_log_streams(
+                        logGroupName=self.log_group,
+                        logStreamNamePrefix=self.log_stream)
 
-# Add the handlers to the logger
-logger.addHandler(fh)
+                    log_streams = response.get('logStreams', [])
+                    if not log_streams:
+                        self.cloudwatch_logs.create_log_stream(
+                            logGroupName=self.log_group,
+                            logStreamName=self.log_stream
+                        )
+                except Exception as e:
+                    if "ResourceNotFoundException" in str(e):
+                        # Log stream doesn't exist, create it
+                        self.cloudwatch_logs.create_log_stream(
+                            logGroupName=self.log_group,
+                            logStreamName=self.log_stream
+                        )
+                self.cloudwatch_logs.put_log_events(
+                    logGroupName=self.log_group,
+                    logStreamName=self.log_stream,
+                    logEvents=[{'timestamp': int(record.created * 1000), 'message': log_message}]
+                )
+    logger.addHandler(CloudWatchLogHandler())
+else:
+    fh = logging.FileHandler(global_config.LOG_FILE_NAME)
+    fh.setLevel(logging.DEBUG)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+    logger.info("Logger is configured to write to a file: " + global_config.LOG_FILE_NAME)
 
-# Example logging
-logger.info("Logger is configured to write to a file: " + global_config.LOG_FILE_NAME)
 
 _ = load_dotenv(find_dotenv())  # read local .env file
 openai.api_key = os.getenv('OPENAI_API_KEY')
@@ -73,6 +107,16 @@ class Question(BaseModel):
     question: str
     case_id: str
 
+
+@app.on_event("startup")
+def set_default_executor():
+    from concurrent.futures import ThreadPoolExecutor
+    import asyncio
+
+    loop = asyncio.get_running_loop()
+    loop.set_default_executor(
+        ThreadPoolExecutor(max_workers=5)
+    )
 
 @app.get("/question_case/", summary="Ask AIAdvisor about your case")
 async def ask_question(question: str, case_id: str):
@@ -207,21 +251,19 @@ async def clean_case_index(case_id: str):
 async def store_document(case_id: str = Form(...), document: UploadFile = Form(...), document_id: int = Form(...)):
     try:
         logger.info("****************store document")
-
         if document_id is None or document_id == 0:
             source = document.filename
         else:
             source = str(document_id)
 
         logger.info(f"File Name: {source}")
-
         logger.info(f"Start: {threading.active_count()}")
         content = await document.read()  # Read the file content
         content = content.decode()  # If the file is a text file, convert bytes to string
         doc_length = len(content)
         logger.info("Store a document of length: " + str(doc_length) + " for case: " + str(case_id))
         logger.info(f"Before Store Documents: {threading.active_count()}")
-        number_splits = do_store_document(content, case_id, source);
+        number_splits = do_store_document(content, case_id, source)
         return {"message": "Document stored successfully", "Number of splits": str(number_splits)}
     except Exception as e:
         logger.exception(e)
@@ -230,11 +272,17 @@ async def store_document(case_id: str = Form(...), document: UploadFile = Form(.
 
 @app.post("/store_content/", status_code=201, summary="Store document content for a case")
 async def store_content(case_id: str = Form(...), content: str = Form(...), source: str = Form(...)):
-    doc_length = len(content)
-    logger.info("Store content of length: " + str(doc_length) + " for case: " + str(case_id))
-    number_splits = do_store_document(content, case_id, source)
-    return {"message": "Content stored successfully", "Number of splits": str(number_splits)}
-
+    try:
+        doc_length = len(content)
+        logger.info("Store content of length: " + str(doc_length) + " for case: " + str(case_id))
+        logger.info(f"Before Store Documents: {threading.active_count()}")
+        number_splits = await do_store_document(content, case_id, source)
+        logger.info(f"After Store Documents: {threading.active_count()}")
+        logger.info(f"Number of splits: {str(number_splits)}")
+    except Exception as e:
+        logger.exception(e)
+        raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
+  
 
 @app.get("/describe_index/", summary="Describe full Pinecone index (may take a long time)")
 async def describe_index(index_name: Optional[str] = None):
