@@ -1,6 +1,6 @@
 # AIAdvisor
 
-## Complete dev setup
+## Developer setup
 
 #### Java
 [Coretto 17](https://docs.aws.amazon.com/corretto/latest/corretto-17-ug/downloads-list.html)
@@ -40,8 +40,14 @@ conda activate AIAdvisor
 ./requirements-install.sh
 ```
 
+```shell
+sudo vi /etc/systemd/system.conf 
+Then
+DefaultLimitNOFILE=65535:524288
+```
 * AIAdvisor is in `code/python`
 * Run FastAPI
 ```shell
 ./run_fastapi.sh
 ```
+
