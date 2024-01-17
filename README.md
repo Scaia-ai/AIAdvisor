@@ -44,6 +44,8 @@ conda activate AIAdvisor
 sudo vi /etc/systemd/system.conf 
 Then
 DefaultLimitNOFILE=65535:524288
+Reboot
+Verify `ulimit -Sn`
 ```
 * AIAdvisor is in `code/python`
 * Run FastAPI
