@@ -35,10 +35,6 @@ logger = logging.getLogger(global_config.LOG_FILE_NAME)
 model = global_config.LLM_MODEL
 _ = load_dotenv(find_dotenv())  # read local .env file
 openai.api_key = os.getenv('OPENAI_API_KEY')
-pinecone.init(
-    api_key=os.getenv('PINECONE_API_KEY'),
-    environment=os.getenv('PINECONE_ENVIRONMENT')
-)
 
 if os.getenv('AWS_LOG_GROUP') is not None:
     class CloudWatchLogHandler(StreamHandler):
@@ -127,16 +123,13 @@ async def ask_question(question: str, case_id: str):
         namespace = case_id
         logger.info("namespace=" + namespace)
         # initialize pinecone
-        pinecone.init(
-            api_key=os.getenv('PINECONE_API_KEY'),
-            environment=os.getenv('PINECONE_ENVIRONMENT')
-        )
+        pc = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))
         logger.info("pinecone.init OK")
         from langchain.embeddings.openai import OpenAIEmbeddings
         embeddings = OpenAIEmbeddings(openai_api_key=openai.api_key)
 
         def get_similar_docs(query, namespace, num_sources=10, score=False):
-            index = Pinecone.from_existing_index(global_config.PINECONE_INDEX, embeddings, namespace=namespace)
+            index = pc.from_existing_index(global_config.PINECONE_INDEX, embeddings, namespace=namespace)
             if score:
                 similar_docs = index.similarity_search_with_score(query, k=num_sources, namespace=namespace)
             else:
@@ -180,7 +173,8 @@ async def ask_question(question: str, case_id: str):
 @app.get("/question_cases/", summary="Ask CasifyAI about your multiple cases")
 async def ask_question(question: str, case_ids: list[str] = Query(...)):
     def get_similar_docs(query, namespace, num_sources=10, score=False):
-        index = Pinecone.from_existing_index(global_config.PINECONE_INDEX, embeddings, namespace=namespace)
+        pc = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))
+        index = pc.from_existing_index(global_config.PINECONE_INDEX, embeddings, namespace=namespace)
         if score:
             similar_docs = index.similarity_search_with_score(query, k=num_sources, namespace=namespace)
         else:
@@ -219,10 +213,7 @@ async def ask_question(question: str, case_ids: list[str] = Query(...)):
             namespace = case_id
             logger.info("namespace=" + namespace)
             # initialize pinecone
-            pinecone.init(
-                api_key=os.getenv('PINECONE_API_KEY'),
-                environment=os.getenv('PINECONE_ENVIRONMENT')
-            )
+            pc = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))
             logger.info("pinecone.init OK")
             from langchain.embeddings.openai import OpenAIEmbeddings
             embeddings = OpenAIEmbeddings(openai_api_key=openai.api_key)
@@ -275,9 +266,10 @@ async def store_content(case_id: str = Form(...), content: str = Form(...), sour
         doc_length = len(content)
         logger.info("Store content of length: " + str(doc_length) + " for case: " + str(case_id))
         logger.info(f"Before Store Documents: {threading.active_count()}")
-        number_splits = await do_store_document(content, case_id, source)
+        number_splits = do_store_document(content, case_id, source)
         logger.info(f"After Store Documents: {threading.active_count()}")
         logger.info(f"Number of splits: {str(number_splits)}")
+        
     except Exception as e:
         logger.exception(e)
         raise HTTPException(status_code=500, detail="An error occurred while processing the request.")

@@ -11,7 +11,7 @@ Functions:
 import os
 import openai
 from dotenv import load_dotenv, find_dotenv
-import pinecone
+from pinecone import Pinecone
 from langchain.vectorstores import Pinecone as Pinecone_lch
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.llms import OpenAI
@@ -29,10 +29,7 @@ MODEL = "gpt-4"
 index_name = os.getenv('PINECONE_INDEX_NAME')
 
 # initialize pinecone
-pinecone.init(
-    api_key=os.getenv('PINECONE_API_KEY'),
-    environment=os.getenv('PINECONE_ENVIRONMENT')
-)
+pc = Pinecone(api_key=os.getenv('PINECONE_API_KEY'))
 
 
 embeddings = OpenAIEmbeddings(openai_api_key=openai.api_key)
@@ -58,7 +55,7 @@ def get_answer(query, namespace):
 
 
 def clean_namespace(namespace: str):
-    index_pc = pinecone.Index(os.getenv('PINECONE_INDEX_NAME'))
+    index_pc = Pinecone.Index(os.getenv('PINECONE_INDEX_NAME'))
     index_pc.delete(deleteAll=True, namespace=namespace)
 
 

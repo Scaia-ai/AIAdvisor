@@ -16,4 +16,4 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 COPY . .
 
 # Specify the command to run on container start
-CMD ["gunicorn", "main:app", "-w", "3", "-b", "0.0.0.0:80", "-k", "uvicorn.workers.UvicornWorker", "--threads", "2"]
+CMD ["gunicorn", "main:app", "-w", "3", "-b", "0.0.0.0:80", "-k", "uvicorn.workers.UvicornWorker", "--threads", "3"]

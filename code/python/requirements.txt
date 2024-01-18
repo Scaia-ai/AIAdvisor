@@ -2,6 +2,7 @@ python-dotenv
 openai
 pinecone-client
 langchain
+langchain-community
 fastapi
 pydantic
 unstructured
