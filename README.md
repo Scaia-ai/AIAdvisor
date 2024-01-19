@@ -45,7 +45,7 @@ sudo vi /etc/systemd/system.conf
 Then
 DefaultLimitNOFILE=65535:524288
 Reboot
-Verify `ulimit -Sn`
+To verify, run ulimit -Sn
 ```
 * AIAdvisor is in `code/python`
 * Run FastAPI
@@ -53,3 +53,6 @@ Verify `ulimit -Sn`
 ./run_fastapi.sh
 ```
 
+#### FreeEed setup
+* AIAdvisor on localhost
+* Review on the VM IP, and AIAdvisor on the VM IP
