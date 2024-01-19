@@ -66,8 +66,8 @@ async def do_store_document(content: str, namespace: str, filename: str):
     source = f"[[Source: {filename}]]"
     logger.info(f"Source: {source}")
 
-    for document in docs:
-        document = f"{source} {document}" 
+    for idx, document in enumerate(docs):
+        docs[idx] = f"{source} {document}"
 
     logger.info("Document split into " + str(len(docs)) + " paragraphs completed")
     embeddings = OpenAIEmbeddings(openai_api_key=openai.api_key)
@@ -76,7 +76,11 @@ async def do_store_document(content: str, namespace: str, filename: str):
         api_key=os.getenv('PINECONE_API_KEY'),
         environment=os.getenv('PINECONE_ENVIRONMENT')
     )
-    
+
+    for document in docs:
+        logger.info(f"Document: {document}")
+
+
     Pinecone.from_texts(docs, embeddings, index_name=global_config.PINECONE_INDEX, namespace=namespace, pool_threads=1)
     #Pinecone.from_documents(docs, embeddings, index_name=global_config.PINECONE_INDEX, namespace=namespace, pool_threads=2)
     
