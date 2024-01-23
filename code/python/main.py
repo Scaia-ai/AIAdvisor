@@ -90,7 +90,7 @@ openai.api_key = os.getenv('OPENAI_API_KEY')
 
 app = FastAPI(
     title="AIAdvisor",
-    description="AIAdvisor API",
+    description="AIAdvisor API on " + global_config.LLM_MODEL,
     version=AI_ADVISOR_VERSION
 )
 
