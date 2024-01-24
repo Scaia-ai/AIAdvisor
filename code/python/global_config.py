@@ -3,7 +3,7 @@ import logging
 from dotenv import load_dotenv
 load_dotenv()
 
-AI_ADVISOR_VERSION = "10.1.4"
+AI_ADVISOR_VERSION = "10.1.5"
 #LLM_MODEL = "gpt-4"
 LLM_MODEL = "gpt-4-1106-preview"
 LOG_FILE_NAME = "aiadvisor.log"
