@@ -47,12 +47,18 @@ DefaultLimitNOFILE=65535:524288
 Reboot
 To verify, run ulimit -Sn
 ```
-* AIAdvisor is in `code/python`
-* Run FastAPI
+
+## FreeEed and AIAdvisor release
+* Everything is baked into  VM as above
+* start_all.sh
+* AIAdvisor 
 ```shell
+cd projects/AIAdvisor/code/python
+conda activate AIAdvisor
 ./run_fastapi.sh
+
 ```
 
-#### FreeEed setup
-* AIAdvisor on localhost
+* Start AIAdvisor on localhost
+* 
 * Review on the VM IP, and AIAdvisor on the VM IP
