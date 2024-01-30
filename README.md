@@ -60,5 +60,10 @@ conda activate AIAdvisor
 ```
 
 * Start AIAdvisor on localhost
-* 
 * Review on the VM IP, and AIAdvisor on the VM IP
+
+```shell
+cd projects/AIAdvisor/code/python
+conda activate AIAdvisor
+python reload_on_high_connections.py
+```
