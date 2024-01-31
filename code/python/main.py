@@ -28,6 +28,7 @@ import uvicorn
 import global_config
 from logging import StreamHandler
 from boto3 import Session
+import boto3
 import time
 
 logging.basicConfig(level=logging.INFO)
@@ -332,6 +333,24 @@ async def transcribe(document: UploadFile = Form(...)):
     return JSONResponse(content={"transcription": transcript.text})
     # return transcript.text
 
+@app.get("/find_pii/", summary="Find suspected PII entries")
+async def find_pii(text: str):
+    try:
+        pii = "Shalom"
+        results = []
+        comprehend = boto3.client(service_name='comprehend', region_name='us-east-2')
+        response = comprehend.detect_pii_entities(Text=text, LanguageCode='en')
+        pii_entities = response['Entities']
+        for entity in pii_entities:
+            entity_text = text[entity['BeginOffset']:entity['EndOffset']]
+            entity = f"Entity: {entity['Type']}, Score: {entity['Score']}, Text: \"{entity_text}\""
+            print(entity)
+            results.append(entity)
+        return results
+    except Exception as e:
+        logger.exception(e)
+        raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
+    return {pii}
 
 @app.get("/")
 async def read_root():
@@ -347,20 +366,5 @@ def get_source(text):
         result = result.replace('[[Source: ', '')
         return result
     return ""
-
-def check_condition_and_restart():
-    while True:
-        # Replace this with your custom condition
-        if your_custom_condition():
-            os.system("kill -HUP `cat uvicorn.pid`")
-        time.sleep(10)  # Check every 10 seconds
-
-def your_custom_condition():
-    print("***************************Reload")
-    # Define your custom condition here
-    return True
-# if __name__ == "__main__":
-#     threading.Thread(target=check_condition_and_restart, daemon=True).start()
-#     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=False, pidfile='uvicorn.pid')
 
 
