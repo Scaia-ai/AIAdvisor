@@ -336,7 +336,6 @@ async def transcribe(document: UploadFile = Form(...)):
 @app.get("/find_pii/", summary="Find suspected PII entries")
 async def find_pii(text: str):
     try:
-        pii = "Shalom"
         results = []
         comprehend = boto3.client(service_name='comprehend', region_name='us-east-2')
         response = comprehend.detect_pii_entities(Text=text, LanguageCode='en')
