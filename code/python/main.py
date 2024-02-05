@@ -186,15 +186,6 @@ async def ask_question(question: str, case_id: str):
 async def ask_question(question: str, case_ids: list[str] = Query(...)):
     logger.info("question_cases")
     logger.info("*********** asking about " + str(len(case_ids)) + " cases")
-    def get_similar_docs(query, namespace, num_sources=10, score=False):
-        index = Pinecone.from_existing_index(global_config.PINECONE_INDEX, embeddings, namespace=namespace)
-        if score:
-            similar_docs = index.similarity_search_with_score(query, k=num_sources, namespace=namespace)
-        else:
-            similar_docs = index.similarity_search(query, k=num_sources, namespace=namespace)
-        logger.info(str(len(similar_docs)) + " similar docs found")
-        logger.info(type(similar_docs))
-        return similar_docs
 
     def get_answer(query, namespace):
         combined_list = []
