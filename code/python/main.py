@@ -181,49 +181,16 @@ async def ask_question(question: str, case_id: str):
         raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
     return {"question": question, "answer": answer[0], "sources": answer[1]}
 
-
-@app.get("/question_cases/", summary="Ask CasifyAI about your multiple cases")
-async def ask_question(question: str, case_ids: list[str] = Query(...)):
+@app.get("/question_mult_cases/", summary="Direct one question to multiple cases")
+async def ask_mult_cases(question: str, case_ids: list[str] = Query(...)):
     logger.info("question_cases")
     logger.info("*********** asking about " + str(len(case_ids)) + " cases")
-
-    def get_answer(query, namespace):
-        combined_list = []
-        docs = []
-        for case_id in case_ids:
-            namespace = case_id
-            logger.info("namespace=" + namespace)
-            llm = OpenAI(model_name=model)
-            chain = load_qa_chain(llm, chain_type="stuff")
-            similar_docs_list = get_similar_docs(query, namespace=namespace)
-            combined_list.extend(similar_docs_list)
-            if isinstance(similar_docs_list, tuple):
-                docs.extend([t[0] for t in similar_docs_list])
-            else:
-                docs.extend(similar_docs_list)
-        sources = []
-        for element in docs:
-            source = get_source(element.page_content)
-            logger.info(f"Source: {source}")
-            sources.append(source)
-        sources = list(set(sources))
-        return (chain.run(input_documents=combined_list, question=query), sources)
-
     try:
-        _ = load_dotenv(find_dotenv())  # read local .env file
-        openai.api_key = os.getenv('OPENAI_API_KEY')
-        for case_id in case_ids:
-            namespace = case_id
-            logger.info("namespace=" + namespace)
-            my_query = str(question)
-            logger.info("my_query=" + my_query)
-            answer = get_answer(my_query, namespace)
-            print(answer[0])
-            logger.info("A: " + answer[0])
+        logger.info("Do some work")
     except Exception as e:
         logger.exception(e)
         raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
-    return {"question": question, "answer": answer[0], "sources": answer[1]}
+    return {"question": question}
 
 
 @app.post("/clean_case_index/", status_code=201, summary="Clean up an index for a case")
