@@ -177,7 +177,7 @@ async def ask_question(question: str, case_id: str):
     except Exception as e:
         logger.exception(e)
         raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
-    return {"question": question, "answer": answer[0], "sources": answer[1]}
+    return {"question": question, "case_id": case_id, "answer": answer[0], "sources": answer[1]}
 
 
 @app.get("/question_mult_cases/", summary="Direct one question to multiple cases")
