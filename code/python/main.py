@@ -181,6 +181,8 @@ async def ask_question(question: str, case_id: str):
 
 @app.get("/question_cases/", summary="Ask CasifyAI about your multiple cases")
 async def ask_question(question: str, case_ids: list[str] = Query(...)):
+    logger.info("question_cases")
+    logger.info("asking " + str(len(case_ids)) + " cases")
     def get_similar_docs(query, namespace, num_sources=10, score=False):
         index = Pinecone.from_existing_index(global_config.PINECONE_INDEX, embeddings, namespace=namespace)
         if score:
