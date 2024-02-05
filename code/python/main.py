@@ -18,18 +18,16 @@ from dotenv import load_dotenv, find_dotenv
 import pinecone
 from typing import Optional
 from fastapi import FastAPI, Query
-from langchain.llms import OpenAI
 import shutil
 from pathlib import Path
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-import time
-import uvicorn
 import global_config
 from logging import StreamHandler
 from boto3 import Session
 import boto3
 import time
+import asyncio
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(global_config.LOG_FILE_NAME)
@@ -181,16 +179,24 @@ async def ask_question(question: str, case_id: str):
         raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
     return {"question": question, "answer": answer[0], "sources": answer[1]}
 
+
 @app.get("/question_mult_cases/", summary="Direct one question to multiple cases")
 async def ask_mult_cases(question: str, case_ids: list[str] = Query(...)):
     logger.info("question_cases")
     logger.info("*********** asking about " + str(len(case_ids)) + " cases")
-    try:
-        logger.info("Do some work")
-    except Exception as e:
-        logger.exception(e)
-        raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
-    return {"question": question}
+
+    # Create a list of coroutine objects
+    tasks = [ask_question(question, case_id) for case_id in case_ids]
+
+    # Run the coroutines concurrently and wait for all to finish
+    answers = await asyncio.gather(*tasks)
+
+    # Concatenate the answers
+    concatenated_answers = " ".join(str(answer) for answer in answers)
+
+    logger.info("Concatenated Answers: " + concatenated_answers)
+
+    return {"answers": concatenated_answers}
 
 
 @app.post("/clean_case_index/", status_code=201, summary="Clean up an index for a case")
