@@ -196,7 +196,7 @@ async def ask_mult_cases(question: str, case_ids: list[str] = Query(...)):
 
     logger.info("Concatenated Answers: " + concatenated_answers)
 
-    return {"answers": concatenated_answers}
+    return answers
 
 
 @app.post("/clean_case_index/", status_code=201, summary="Clean up an index for a case")
