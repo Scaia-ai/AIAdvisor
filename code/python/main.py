@@ -28,6 +28,7 @@ from boto3 import Session
 import boto3
 import time
 import asyncio
+from typing import List
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(global_config.LOG_FILE_NAME)
@@ -181,12 +182,12 @@ async def ask_question(question: str, case_id: str):
 
 
 @app.get("/question_mult_cases/", summary="Direct one question to multiple cases")
-async def ask_mult_cases(question: str, case_ids: list[str] = Query(...)):
+async def ask_mult_cases(question: str, case_ids: str = Query(...)):
     logger.info("question_cases")
     logger.info("*********** asking about " + str(len(case_ids)) + " cases")
-
+    case_ids_list = case_ids.split(',')
     # Create a list of coroutine objects
-    tasks = [ask_question(question, case_id) for case_id in case_ids]
+    tasks = [ask_question(question, case_id) for case_id in case_ids_list]
 
     # Run the coroutines concurrently and wait for all to finish
     answers = await asyncio.gather(*tasks)
