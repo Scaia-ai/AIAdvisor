@@ -28,7 +28,6 @@ from boto3 import Session
 import boto3
 import time
 import asyncio
-from typing import List
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(global_config.LOG_FILE_NAME)
