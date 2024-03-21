@@ -25,7 +25,6 @@ logger = logging.getLogger(global_config.LOG_FILE_NAME)
 
 _ = load_dotenv(find_dotenv())  # read local .env file
 openai.api_key = os.getenv('OPENAI_API_KEY')
-MODEL = "gpt-4"
 index_name = os.getenv('PINECONE_INDEX_NAME')
 
 # initialize pinecone
@@ -57,12 +56,6 @@ def get_answer(query, namespace):
 def clean_namespace(namespace: str):
     index_pc = pc.Index(os.getenv('PINECONE_INDEX_NAME'))
     index_pc.delete(deleteAll=True, namespace=namespace)
-
-
-def split_docs(documents, chunk_size=1000, chunk_overlap=20):
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
-    docs = text_splitter.split_documents(documents)
-    return docs
 
 
 

@@ -8,6 +8,7 @@ from starlette.responses import RedirectResponse
 from pydantic import BaseModel
 from store_document import do_store_document
 from fastapi import HTTPException
+from pinecone import Pinecone as Pinecone_Client
 from global_config import AI_ADVISOR_VERSION
 import logging
 import openai
@@ -274,6 +275,7 @@ async def store_content(case_id: str = Form(...), content: str = Form(...), sour
         logger.exception(e)
         raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
   
+
 
 @app.get("/describe_index/", summary="Describe full Pinecone index (may take a long time)")
 async def describe_index(index_name: Optional[str] = None):
