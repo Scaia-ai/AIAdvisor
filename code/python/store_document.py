@@ -1,17 +1,14 @@
 import logging
 import os
-import tempfile
 import openai
-from langchain.document_loaders import TextLoader
 from langchain.text_splitter import CharacterTextSplitter
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Pinecone
-import pinecone
-from langchain.docstore.document import Document
+from pinecone import Pinecone as Pinecone_Client
 from dotenv import load_dotenv, find_dotenv
 import global_config
 
-logger = logging.getLogger("AIAdvisor")
+logger = logging.getLogger(global_config.LOG_FILE_NAME)
 
 num_splits = 0
 
@@ -39,7 +36,7 @@ def filter_strings(documents, max_length=40000):
     return [s for s in documents if len(s) <= max_length]
 
 
-async def do_store_document(content: str, namespace: str, filename: str):
+def do_store_document(content: str, namespace: str, filename: str):
     logger.info("do_store_document ")
     logger.info("namespace: " + namespace)
     logger.info("index_name = " + str(global_config.PINECONE_INDEX))
@@ -67,27 +64,16 @@ async def do_store_document(content: str, namespace: str, filename: str):
     logger.info(f"Source: {source}")
 
     for idx, document in enumerate(docs):
-        docs[idx] = f"{source} {document}"
+        docs[idx] = f"{source} {document}" 
 
     logger.info("Document split into " + str(len(docs)) + " paragraphs completed")
     embeddings = OpenAIEmbeddings(openai_api_key=openai.api_key)
 
-    pinecone.init(
-        api_key=os.getenv('PINECONE_API_KEY'),
-        environment=os.getenv('PINECONE_ENVIRONMENT')
-    )
-
-    for document in docs:
-        logger.info(f"Document: {document}")
-
-
-    Pinecone.from_texts(docs, embeddings, index_name=global_config.PINECONE_INDEX, namespace=namespace, pool_threads=1)
+    pc = Pinecone_Client(api_key=os.getenv('PINECONE_API_KEY'))
+    
+    Pinecone.from_texts(docs, embeddings, index_name=global_config.PINECONE_INDEX, namespace=namespace)
     #Pinecone.from_documents(docs, embeddings, index_name=global_config.PINECONE_INDEX, namespace=namespace, pool_threads=2)
     
-    pinecone.init(
-        api_key=os.getenv('PINECONE_API_KEY'),
-        environment=os.getenv('PINECONE_ENVIRONMENT')
-    )
 
     logger.info("Stored in index " + global_config.PINECONE_INDEX + " namespace " + namespace)
     #os.remove(temp_file)

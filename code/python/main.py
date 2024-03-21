@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from aiadvisor_pinecone_lch import clean_namespace
 from store_document import do_store_document
 from fastapi import HTTPException
+from pinecone import Pinecone as Pinecone_Client
 from global_config import AI_ADVISOR_VERSION
 import logging
 import openai
@@ -28,6 +29,7 @@ from boto3 import Session
 import boto3
 import time
 import asyncio
+from typing import List
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(global_config.LOG_FILE_NAME)
@@ -35,10 +37,6 @@ logger = logging.getLogger(global_config.LOG_FILE_NAME)
 model = global_config.LLM_MODEL
 _ = load_dotenv(find_dotenv())  # read local .env file
 openai.api_key = os.getenv('OPENAI_API_KEY')
-pinecone.init(
-    api_key=os.getenv('PINECONE_API_KEY'),
-    environment=os.getenv('PINECONE_ENVIRONMENT')
-)
 
 if os.getenv('AWS_LOG_GROUP') is not None:
     class CloudWatchLogHandler(StreamHandler):
@@ -118,11 +116,7 @@ def set_default_executor():
     )
 
 
-# initialize pinecone
-pinecone.init(
-    api_key=os.getenv('PINECONE_API_KEY'),
-    environment=os.getenv('PINECONE_ENVIRONMENT')
-)
+
 logger.info("pinecone.init OK")
 from langchain.embeddings.openai import OpenAIEmbeddings
 
@@ -243,14 +237,15 @@ async def store_content(case_id: str = Form(...), content: str = Form(...), sour
         raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
   
 
+
 @app.get("/describe_index/", summary="Describe full Pinecone index (may take a long time)")
 async def describe_index(index_name: Optional[str] = None):
     try:
         if index_name is None:
             index_name = global_config.PINECONE_INDEX
         logger.info("Describing index: " + index_name)
-        pinecone.init(api_key=os.getenv('PINECONE_API_KEY'), environment=os.getenv('PINECONE_ENVIRONMENT'))
-        index = pinecone.Index(index_name)
+        pc = Pinecone_Client(api_key=os.getenv('PINECONE_API_KEY'))
+        index = pc.Index(index_name)
         index_stats_response = index.describe_index_stats()
         one_string = str(index_stats_response)
         return {"index_stats": one_string}
