@@ -1,4 +1,4 @@
-# Main for AIAdvisor FastAPI
+
 
 import assemblyai as aai
 import threading
@@ -6,18 +6,19 @@ import os
 from fastapi import FastAPI, UploadFile, Form
 from starlette.responses import RedirectResponse
 from pydantic import BaseModel
-from aiadvisor_pinecone_lch import clean_namespace
 from store_document import do_store_document
 from fastapi import HTTPException
 from global_config import AI_ADVISOR_VERSION
 import logging
 import openai
+from aiadvisor_pinecone_lch import clean_namespace
 from langchain.vectorstores import Pinecone
 from langchain.chains.question_answering import load_qa_chain
 from dotenv import load_dotenv, find_dotenv
-import pinecone
+from pinecone import Pinecone as Pinecone_Client
 from typing import Optional
 from fastapi import FastAPI, Query
+from langchain.llms import OpenAI
 import shutil
 from pathlib import Path
 from fastapi.responses import JSONResponse
@@ -25,20 +26,14 @@ from fastapi.middleware.cors import CORSMiddleware
 import global_config
 from logging import StreamHandler
 from boto3 import Session
-import boto3
 import time
-import asyncio
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(global_config.LOG_FILE_NAME)
 
-model = global_config.LLM_MODEL
+model = os.getenv('LLM_MODEL')
 _ = load_dotenv(find_dotenv())  # read local .env file
 openai.api_key = os.getenv('OPENAI_API_KEY')
-pinecone.init(
-    api_key=os.getenv('PINECONE_API_KEY'),
-    environment=os.getenv('PINECONE_ENVIRONMENT')
-)
 
 if os.getenv('AWS_LOG_GROUP') is not None:
     class CloudWatchLogHandler(StreamHandler):
@@ -102,6 +97,7 @@ app.add_middleware(
 )
 
 
+
 class Question(BaseModel):
     question: str
     case_id: str
@@ -117,26 +113,6 @@ def set_default_executor():
         ThreadPoolExecutor(max_workers=5)
     )
 
-
-# initialize pinecone
-pinecone.init(
-    api_key=os.getenv('PINECONE_API_KEY'),
-    environment=os.getenv('PINECONE_ENVIRONMENT')
-)
-logger.info("pinecone.init OK")
-from langchain.embeddings.openai import OpenAIEmbeddings
-
-embeddings = OpenAIEmbeddings(openai_api_key=openai.api_key)
-
-def get_similar_docs(query, namespace, num_sources=10, score=False):
-    index = Pinecone.from_existing_index(global_config.PINECONE_INDEX, embeddings, namespace=namespace)
-    if score:
-        similar_docs = index.similarity_search_with_score(query, k=num_sources, namespace=namespace)
-    else:
-        similar_docs = index.similarity_search(query, k=num_sources, namespace=namespace)
-    logger.info(str(len(similar_docs)) + " similar docs found")
-    return similar_docs
-
 @app.get("/question_case/", summary="Ask AIAdvisor about your case")
 async def ask_question(question: str, case_id: str):
     try:
@@ -146,6 +122,20 @@ async def ask_question(question: str, case_id: str):
 
         namespace = case_id
         logger.info("namespace=" + namespace)
+        # initialize pinecone
+        pc = Pinecone_Client(api_key=os.getenv('PINECONE_API_KEY'))
+        logger.info("pinecone.init OK")
+        from langchain.embeddings.openai import OpenAIEmbeddings
+        embeddings = OpenAIEmbeddings(openai_api_key=openai.api_key)
+
+        def get_similar_docs(query, namespace, num_sources=10, score=False):
+            index = Pinecone.from_existing_index(global_config.PINECONE_INDEX, embeddings, namespace=namespace)
+            if score:
+                similar_docs = index.similarity_search_with_score(query, k=num_sources, namespace=namespace)
+            else:
+                similar_docs = index.similarity_search(query, k=num_sources, namespace=namespace)
+            logger.info(str(len(similar_docs)) + " similar docs found")
+            return similar_docs
 
         def get_answer(query, namespace):
             docs = []
@@ -177,26 +167,67 @@ async def ask_question(question: str, case_id: str):
     except Exception as e:
         logger.exception(e)
         raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
-    return {"question": question, "case_id": case_id, "answer": answer[0], "sources": answer[1]}
+    return {"question": question, "answer": answer[0], "sources": answer[1]}
 
 
-@app.get("/question_mult_cases/", summary="Direct one question to multiple cases")
-async def ask_mult_cases(question: str, case_ids: str = Query(...)):
-    logger.info("question_cases")
-    logger.info("*********** asking about " + str(len(case_ids)) + " cases")
-    case_ids_list = case_ids.split(',')
-    # Create a list of coroutine objects
-    tasks = [ask_question(question, case_id) for case_id in case_ids_list]
+@app.get("/question_cases/", summary="Ask AIAdvisor about your multiple cases")
+async def ask_question(question: str, case_ids: list[str] = Query(...)):
+    def get_similar_docs(query, namespace, num_sources=10, score=False):
+        pc = Pinecone_Client(api_key=os.getenv('PINECONE_API_KEY'))
+        index = Pinecone.from_existing_index(global_config.PINECONE_INDEX, embeddings, namespace=namespace)
+        if score:
+            similar_docs = index.similarity_search_with_score(query, k=num_sources, namespace=namespace)
+        else:
+            similar_docs = index.similarity_search(query, k=num_sources, namespace=namespace)
+        logger.info(str(len(similar_docs)) + " similar docs found")
+        logger.info(type(similar_docs))
+        return similar_docs
 
-    # Run the coroutines concurrently and wait for all to finish
-    answers = await asyncio.gather(*tasks)
+    def get_answer(query, namespace):
+        combined_list = []
+        docs = []
+        for case_id in case_ids:
+            namespace = case_id
+            logger.info("namespace=" + namespace)
+            llm = OpenAI(model_name=model)
+            chain = load_qa_chain(llm, chain_type="stuff")
+            similar_docs_list = get_similar_docs(query, namespace=namespace)
+            combined_list.extend(similar_docs_list)
+            if isinstance(similar_docs_list, tuple):
+                docs.extend([t[0] for t in similar_docs_list])
+            else:
+                docs.extend(similar_docs_list)
+        sources = []
+        for element in docs:
+            source = get_source(element.page_content)
+            logger.info(f"Source: {source}")
+            sources.append(source)
+        sources = list(set(sources))
+        return (chain.run(input_documents=combined_list, question=query), sources)
 
-    # Concatenate the answers
-    concatenated_answers = " ".join(str(answer) for answer in answers)
+    try:
+        logger.info("********** ask question about cases " + str(case_ids))
+        _ = load_dotenv(find_dotenv())  # read local .env file
+        openai.api_key = os.getenv('OPENAI_API_KEY')
+        for case_id in case_ids:
+            namespace = case_id
+            logger.info("namespace=" + namespace)
+            # initialize pinecone
+            pc = Pinecone_Client(api_key=os.getenv('PINECONE_API_KEY'))
+            logger.info("pinecone.init OK")
+            from langchain.embeddings.openai import OpenAIEmbeddings
+            embeddings = OpenAIEmbeddings(openai_api_key=openai.api_key)
+            my_query = str(question)
+            logger.info("my_query=" + my_query)
+            answer = get_answer(my_query, namespace)
+            print(answer[0])
 
-    logger.info("Concatenated Answers: " + concatenated_answers)
+            logger.info("A: " + answer[0])
 
-    return answers
+    except Exception as e:
+        logger.exception(e)
+        raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
+    return {"question": question, "answer": answer[0], "sources": answer[1]}
 
 
 @app.post("/clean_case_index/", status_code=201, summary="Clean up an index for a case")
@@ -235,9 +266,10 @@ async def store_content(case_id: str = Form(...), content: str = Form(...), sour
         doc_length = len(content)
         logger.info("Store content of length: " + str(doc_length) + " for case: " + str(case_id))
         logger.info(f"Before Store Documents: {threading.active_count()}")
-        number_splits = await do_store_document(content, case_id, source)
+        number_splits = do_store_document(content, case_id, source)
         logger.info(f"After Store Documents: {threading.active_count()}")
         logger.info(f"Number of splits: {str(number_splits)}")
+        
     except Exception as e:
         logger.exception(e)
         raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
@@ -249,8 +281,8 @@ async def describe_index(index_name: Optional[str] = None):
         if index_name is None:
             index_name = global_config.PINECONE_INDEX
         logger.info("Describing index: " + index_name)
-        pinecone.init(api_key=os.getenv('PINECONE_API_KEY'), environment=os.getenv('PINECONE_ENVIRONMENT'))
-        index = pinecone.Index(index_name)
+        pc = Pinecone_Client(api_key=os.getenv('PINECONE_API_KEY'))
+        index = pc.Index(index_name)
         index_stats_response = index.describe_index_stats()
         one_string = str(index_stats_response)
         return {"index_stats": one_string}
@@ -291,23 +323,6 @@ async def transcribe(document: UploadFile = Form(...)):
     return JSONResponse(content={"transcription": transcript.text})
     # return transcript.text
 
-@app.get("/find_pii/", summary="Find suspected PII entries")
-async def find_pii(text: str):
-    try:
-        results = []
-        comprehend = boto3.client(service_name='comprehend', region_name='us-east-2')
-        response = comprehend.detect_pii_entities(Text=text, LanguageCode='en')
-        pii_entities = response['Entities']
-        for entity in pii_entities:
-            entity_text = text[entity['BeginOffset']:entity['EndOffset']]
-            entity = f"Entity: {entity['Type']}, Score: {entity['Score']}, Text: \"{entity_text}\""
-            print(entity)
-            results.append(entity)
-        return results
-    except Exception as e:
-        logger.exception(e)
-        raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
-    return {pii}
 
 @app.get("/")
 async def read_root():
@@ -323,5 +338,3 @@ def get_source(text):
         result = result.replace('[[Source: ', '')
         return result
     return ""
-
-
