@@ -11,7 +11,7 @@ try:
         print(f"Number of ESTABLISHED connections: {num_connections}")
 
         # Check if the number of connections exceeds a limit
-        high_limit = 500
+        high_limit = 200
         if num_connections > high_limit:
             # Touch a file
             subprocess.run("touch touch_this_file.py", shell=True)
