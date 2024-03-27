@@ -167,3 +167,4 @@ cython_debug/
 lambda_package/
 lambda_package.zip
 touch_this_file.py
+nohup.out
