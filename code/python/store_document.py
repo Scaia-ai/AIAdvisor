@@ -6,6 +6,7 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.vectorstores import Pinecone
 from pinecone import Pinecone as Pinecone_Client
 from dotenv import load_dotenv, find_dotenv
+from typing import List, Dict
 import global_config
 
 logger = logging.getLogger(global_config.LOG_FILE_NAME)
@@ -40,13 +41,9 @@ def do_store_document(content: str, namespace: str, filename: str):
     logger.info("do_store_document ")
     logger.info("namespace: " + namespace)
     logger.info("index_name = " + str(global_config.PINECONE_INDEX))
-    #temp_folder = tempfile.gettempdir()
-    #temp_file = os.path.join(temp_folder, "temp.txt")
-    #with open(temp_file, 'w') as f:
-    #    f.write(content)
-    #    f.close()
 
-    _ = load_dotenv(find_dotenv())  # read local .env file
+    
+    load_dotenv(find_dotenv())  # read local .env file
     openai.api_key = os.getenv('OPENAI_API_KEY')
     #loader = TextLoader(temp_file)
     #documents = loader.load()
@@ -78,3 +75,37 @@ def do_store_document(content: str, namespace: str, filename: str):
     logger.info("Stored in index " + global_config.PINECONE_INDEX + " namespace " + namespace)
     #os.remove(temp_file)
     return str(len(docs))
+
+
+    # {'content' : ''}
+
+def do_store_documents(documents: List[Dict[str, str]]):
+    embeddings = OpenAIEmbeddings(openai_api_key=global_config.OPENAI_API_KEY)
+    all_docs = []
+
+    for document in documents:
+        # Each document is a dict with 'content', 'namespace', and 'filename'
+        content, namespace, filename = document['content'], document['namespace'], document['filename']
+        
+        # Process each document similarly to before
+        docs = split_texts(content)
+        long_strings = find_long_strings(docs)
+        docs = filter_strings(docs)
+
+        for value in long_strings:
+            splitted_strings = split_string(value)
+            docs += splitted_strings
+
+        source = f"[[Source: {filename}]]"
+        for idx, doc in enumerate(docs):
+            docs[idx] = f"{source} {doc}"
+
+        # Collect all docs for batch processing
+        all_docs += docs
+
+    # Generate embeddings in a batch for all_docs
+    # Assuming OpenAIEmbeddings and Pinecone can handle batch processing
+    Pinecone.from_texts(all_docs, embeddings, index_name=global_config.PINECONE_INDEX, namespace=namespace)
+
+    logger.info(f"Stored {len(all_docs)} documents in index {global_config.PINECONE_INDEX}")
+    return len(all_docs)
