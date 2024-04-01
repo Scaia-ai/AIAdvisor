@@ -297,7 +297,27 @@ async def store_content(case_id: str = Form(...), content: str = Form(...), sour
     except Exception as e:
         logger.exception(e)
         raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
-  
+
+@app.post("/store_contents/", status_code=201, summary="Store document content for a case")
+async def store_contents(case_id: str = Form(...), contents: List[str] = Form(...), sources: List[str] = Form(...)):
+    responses = []
+    requests = []
+    for document, document_id in zip(contents, sources):
+        try:
+            logger.info("****************store contents "+document)
+            source = document.filename if document_id is None or document_id == 0 else str(document_id)
+            logger.info(f"File Name: {source}")
+            logger.info(f"Start: {threading.active_count()}")
+            doc_length = len(document)
+            logger.info("Store a document of length: " + str(doc_length) + " for case: " + str(case_id))
+            logger.info(f"Before Store Documents: {threading.active_count()}")
+            requests.append({'content' : document, 'namespace' : case_id, 'filename' : source})
+        except Exception as e:
+            logger.exception(e)
+            raise HTTPException(status_code=500, detail=f"An error occurred while processing the request for case ID: {case_id}.")
+    number_splits = do_store_documents(requests)
+    responses.append({"message": "Documents stored successfully", "Number of splits": str(number_splits)})
+    return responses
 
 
 @app.get("/describe_index/", summary="Describe full Pinecone index (may take a long time)")
