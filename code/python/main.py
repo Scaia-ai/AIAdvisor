@@ -259,29 +259,6 @@ async def store_document(case_id: str = Form(...), document: UploadFile = Form(.
     except Exception as e:
         logger.exception(e)
         raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
-    
-@app.post("/store_documents/", status_code=201, summary="Store multiple documents for cases")
-async def store_documents(case_ids: List[str] = Form(...), documents: List[UploadFile] = Form(...), document_ids: List[int] = Form(...)):
-    responses = []
-    requests = []
-    for case_id, document, document_id in zip(case_ids, documents, document_ids):
-        try:
-            logger.info("****************store document")
-            source = document.filename if document_id is None or document_id == 0 else str(document_id)
-            logger.info(f"File Name: {source}")
-            logger.info(f"Start: {threading.active_count()}")
-            content = await document.read()  # Read the file content
-            content = content.decode()  # If the file is a text file, convert bytes to string
-            doc_length = len(content)
-            logger.info("Store a document of length: " + str(doc_length) + " for case: " + str(case_id))
-            logger.info(f"Before Store Documents: {threading.active_count()}")
-            requests.append({'content' : content, 'namespace' : case_id, 'filename' : source})
-        except Exception as e:
-            logger.exception(e)
-            raise HTTPException(status_code=500, detail=f"An error occurred while processing the request for case ID: {case_id}.")
-    number_splits = do_store_documents(requests)
-    responses.append({"message": "Documents stored successfully", "Number of splits": str(number_splits)})
-    return responses
 
 
 @app.post("/store_content/", status_code=201, summary="Store document content for a case")
@@ -298,10 +275,12 @@ async def store_content(case_id: str = Form(...), content: str = Form(...), sour
         logger.exception(e)
         raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
 
+
 @app.post("/store_contents/", status_code=201, summary="Store document content for a case")
 async def store_contents(case_id: str = Form(...), contents: List[str] = Form(...), sources: List[str] = Form(...)):
     responses = []
     requests = []
+    
     for document, document_id in zip(contents, sources):
         try:
             logger.info("****************store contents "+document)
@@ -311,11 +290,12 @@ async def store_contents(case_id: str = Form(...), contents: List[str] = Form(..
             doc_length = len(document)
             logger.info("Store a document of length: " + str(doc_length) + " for case: " + str(case_id))
             logger.info(f"Before Store Documents: {threading.active_count()}")
-            requests.append({'content' : document, 'namespace' : case_id, 'filename' : source})
+            content_filename_map = {'content' : document, 'filename' : source}
+            requests.append(content_filename_map)
         except Exception as e:
             logger.exception(e)
             raise HTTPException(status_code=500, detail=f"An error occurred while processing the request for case ID: {case_id}.")
-    number_splits = do_store_documents(requests)
+    number_splits = do_store_documents(case_id, requests)
     responses.append({"message": "Documents stored successfully", "Number of splits": str(number_splits)})
     return responses
 
