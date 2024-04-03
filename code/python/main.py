@@ -6,7 +6,7 @@ import os
 from fastapi import FastAPI, UploadFile, Form
 from starlette.responses import RedirectResponse
 from pydantic import BaseModel
-from store_document import do_store_document
+from store_document import do_store_document, do_store_documents
 from fastapi import HTTPException
 from pinecone import Pinecone as Pinecone_Client
 from global_config import AI_ADVISOR_VERSION
@@ -17,7 +17,7 @@ from langchain.vectorstores import Pinecone
 from langchain.chains.question_answering import load_qa_chain
 from dotenv import load_dotenv, find_dotenv
 from pinecone import Pinecone as Pinecone_Client
-from typing import Optional
+from typing import Optional, List
 from fastapi import FastAPI, Query
 from langchain.llms import OpenAI
 import shutil
@@ -274,7 +274,30 @@ async def store_content(case_id: str = Form(...), content: str = Form(...), sour
     except Exception as e:
         logger.exception(e)
         raise HTTPException(status_code=500, detail="An error occurred while processing the request.")
-  
+
+
+@app.post("/store_contents/", status_code=201, summary="Store document content for a case")
+async def store_contents(case_id: str = Form(...), contents: List[str] = Form(...), sources: List[str] = Form(...)):
+    responses = []
+    requests = []
+    
+    for document, document_id in zip(contents, sources):
+        try:
+            logger.info("****************store contents "+document)
+            source = document.filename if document_id is None or document_id == 0 else str(document_id)
+            logger.info(f"File Name: {source}")
+            logger.info(f"Start: {threading.active_count()}")
+            doc_length = len(document)
+            logger.info("Store a document of length: " + str(doc_length) + " for case: " + str(case_id))
+            logger.info(f"Before Store Documents: {threading.active_count()}")
+            content_filename_map = {'content' : document, 'filename' : source}
+            requests.append(content_filename_map)
+        except Exception as e:
+            logger.exception(e)
+            raise HTTPException(status_code=500, detail=f"An error occurred while processing the request for case ID: {case_id}.")
+    number_splits = do_store_documents(case_id, requests)
+    responses.append({"message": "Documents stored successfully", "Number of splits": str(number_splits)})
+    return responses
 
 
 @app.get("/describe_index/", summary="Describe full Pinecone index (may take a long time)")
