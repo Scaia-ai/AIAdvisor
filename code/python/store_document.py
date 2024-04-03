@@ -13,6 +13,7 @@ logger = logging.getLogger(global_config.LOG_FILE_NAME)
 
 num_splits = 0
 
+
 def split_texts(texts, chunk_size=10, chunk_overlap=10):
     logger.info("split_docs with " + str(chunk_size) + " and " + str(chunk_overlap))
     # text_splitter = RecursiveCharacterTextSplitter(chunk_size=chunk_size, chunk_overlap=chunk_overlap)
@@ -21,6 +22,7 @@ def split_texts(texts, chunk_size=10, chunk_overlap=10):
     global num_splits
     num_splits = len(docs)
     return docs
+
 
 def find_long_strings(documents, max_length=40000):
     """Find strings in the array longer than a specified length."""
@@ -41,9 +43,13 @@ def do_store_document(content: str, namespace: str, filename: str):
     logger.info("do_store_document ")
     logger.info("namespace: " + namespace)
     logger.info("index_name = " + str(global_config.PINECONE_INDEX))
+    #temp_folder = tempfile.gettempdir()
+    #temp_file = os.path.join(temp_folder, "temp.txt")
+    #with open(temp_file, 'w') as f:
+    #    f.write(content)
+    #    f.close()
 
-    
-    load_dotenv(find_dotenv())  # read local .env file
+    _ = load_dotenv(find_dotenv())  # read local .env file
     openai.api_key = os.getenv('OPENAI_API_KEY')
     #loader = TextLoader(temp_file)
     #documents = loader.load()
@@ -61,33 +67,28 @@ def do_store_document(content: str, namespace: str, filename: str):
     logger.info(f"Source: {source}")
 
     for idx, document in enumerate(docs):
-        docs[idx] = f"{source} {document}" 
+        docs[idx] = f"{source} {document}"
 
     logger.info("Document split into " + str(len(docs)) + " paragraphs completed")
     embeddings = OpenAIEmbeddings(openai_api_key=openai.api_key)
 
     pc = Pinecone_Client(api_key=os.getenv('PINECONE_API_KEY'))
-    
+
     Pinecone.from_texts(docs, embeddings, index_name=global_config.PINECONE_INDEX, namespace=namespace)
     #Pinecone.from_documents(docs, embeddings, index_name=global_config.PINECONE_INDEX, namespace=namespace, pool_threads=2)
-    
+
 
     logger.info("Stored in index " + global_config.PINECONE_INDEX + " namespace " + namespace)
     #os.remove(temp_file)
     return str(len(docs))
 
 
-    # {'content' : ''}
-
-def do_store_documents(documents: List[Dict[str, str]]):
-    embeddings = OpenAIEmbeddings(openai_api_key=global_config.OPENAI_API_KEY)
+def do_store_documents(namespace: str, documents: List[Dict[str, str]]):
+    embeddings = OpenAIEmbeddings(openai_api_key=os.getenv('OPENAI_API_KEY'))
     all_docs = []
-
     for document in documents:
-        # Each document is a dict with 'content', 'namespace', and 'filename'
-        content, namespace, filename = document['content'], document['namespace'], document['filename']
-        
-        # Process each document similarly to before
+        content, filename = document['content'], document['filename']
+
         docs = split_texts(content)
         long_strings = find_long_strings(docs)
         docs = filter_strings(docs)
@@ -104,7 +105,7 @@ def do_store_documents(documents: List[Dict[str, str]]):
         all_docs += docs
 
     # Generate embeddings in a batch for all_docs
-    # Assuming OpenAIEmbeddings and Pinecone can handle batch processing
+    pc = Pinecone_Client(api_key=os.getenv('PINECONE_API_KEY'))
     Pinecone.from_texts(all_docs, embeddings, index_name=global_config.PINECONE_INDEX, namespace=namespace)
 
     logger.info(f"Stored {len(all_docs)} documents in index {global_config.PINECONE_INDEX}")
