@@ -106,7 +106,7 @@ def do_store_documents(namespace: str, documents: List[Dict[str, str]]):
 
     # Generate embeddings in a batch for all_docs
     pc = Pinecone_Client(api_key=os.getenv('PINECONE_API_KEY'))
-    Pinecone.from_texts(all_docs, embeddings, index_name="testindex", namespace=namespace)
+    Pinecone.from_texts(all_docs, embeddings, index_name=global_config.PINECONE_INDEX, namespace=namespace)
 
     logger.info(f"Stored {len(all_docs)} documents in index {global_config.PINECONE_INDEX}")
     return len(all_docs)
