@@ -3,7 +3,7 @@ import logging
 from dotenv import load_dotenv
 load_dotenv()
 
-AI_ADVISOR_VERSION = "10.3.0"
+AI_ADVISOR_VERSION = "10.3.4"
 LLM_MODEL = os.getenv("LLM_MODEL")
 LOG_FILE_NAME = "aiadvisor.log"
 LOG_LEVEL = logging.DEBUG
