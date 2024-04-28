@@ -14,3 +14,5 @@ pip install docarray
 pip install uvicorn
 pip install assemblyai
 pip install python-multipart
+pip install boto3
+pip install -U langchain-community
