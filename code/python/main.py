@@ -234,9 +234,17 @@ async def ask_question(question: str, case_ids: list[str] = Query(...)):
 @app.post("/clean_case_index/", status_code=201, summary="Clean up an index for a case")
 async def clean_case_index(case_id: str):
     logger.info("Prepare index for case_id: " + case_id)
-    clean_namespace(case_id)
+    if (namespace_exists(case_id)):
+        clean_namespace(case_id)
     return {"message": "Index prepared successfully"}
 
+
+def namespace_exists(namespace):
+    index_name = global_config.PINECONE_INDEX
+    pc = Pinecone_Client(api_key=os.getenv('PINECONE_API_KEY'))
+    index = pc.Index(index_name)
+    namespaces = index.describe_index_stats()['namespaces']
+    return namespace in namespaces
 
 @app.post("/store_document/", status_code=201, summary="Store a document for a case")
 async def store_document(case_id: str = Form(...), document: UploadFile = Form(...), document_id: int = Form(...)):
@@ -270,6 +278,7 @@ async def store_content(case_id: str = Form(...), content: str = Form(...), sour
         number_splits = do_store_document(content, case_id, source)
         logger.info(f"After Store Documents: {threading.active_count()}")
         logger.info(f"Number of splits: {str(number_splits)}")
+        return {"message": "Content stored successfully", "Number of splits": str(number_splits)}
         
     except Exception as e:
         logger.exception(e)
