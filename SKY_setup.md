@@ -12,6 +12,13 @@
 
 * On the Desktop
 * Download and unzip latest freeeed_complete_package.zip
+```shell
+sudo apt update
+sudo apt install pst-utils
+sudo apt install wkhtmltopdf 
+sudo apt-get install tesseract-ocr  
+sudo apt install libreoffice
+```
 
 #### AIAdvisor
 
@@ -24,6 +31,9 @@ bash Anaconda3-2024.02-1-Linux-x86_64.sh
 ```
 
 * Get the AIAdvisor code
+  * Zip up AIAdvisor
+  * Put the zip file here: `https://shmsoft.s3.amazonaws.com/AIAdvisor.zip`
+  * Unzip it on the SKY VM
 
 ```shell````
 cd code/python
