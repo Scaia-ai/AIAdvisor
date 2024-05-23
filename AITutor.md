@@ -1,4 +1,5 @@
 # AI Tutor
+* Think: TA, or Teacher's Assistance
 
 ## References
 * https://www.khanacademy.org/
