@@ -1,4 +1,4 @@
-# AI Tutor
+# AI Tutor  
 * Think: TA, or Teacher's Assistance
 
 ## References
@@ -12,4 +12,5 @@
   * Test the student
   * Explain the points that the student did not understand
   * Prepare the student for lessons that are coming up
-  * Create training materials in case they do not exists
+  * Create training materials in case they do not exist
+* It also needs to write materials
