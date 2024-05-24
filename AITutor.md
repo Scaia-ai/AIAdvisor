@@ -1,9 +1,13 @@
 # AI Tutor  
-* Think: TA, or Teacher's Assistance
+* Think: TA, or Teacher's Assistant
 
 ## References
-* https://www.khanacademy.org/
-* https://eurekaa.io/
+* Tutor for high schoolers
+  * https://www.khanacademy.org/
+  * AITutor is similar but for technical training
+* For creating content
+  * https://eurekaa.io/
+  * A similar capability should be included in the AITutor
 
 ## Description
 * AITutor transcribes the recording of the  lesson
@@ -14,3 +18,13 @@
   * Prepare the student for lessons that are coming up
   * Create training materials in case they do not exist
 * It also needs to write materials
+
+## Implementation
+* All video input is transcribed and converted to text
+* All slide and PDF input converted to text
+* Input is broken into meaningful paragraphs that are neither too large nor too small
+* The paragraphs are stored in a semantic vector ddatabase such as Pinecone
+* The dialog flow can be implemented with multi-agent system like CrewAI
+* One can also borrow some elements of dialog construction from framework RASA
+* The overall success can be implemented with a framework W&B
+* Scaling to be done in the cloud with functions (Azure or Google) or lambdas (Amazon)
