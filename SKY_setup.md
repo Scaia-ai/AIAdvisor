@@ -13,11 +13,11 @@
 * On the Desktop
 * Download and unzip latest freeeed_complete_package.zip
 ```shell
-sudo apt update
-sudo apt install pst-utils
-sudo apt install wkhtmltopdf 
-sudo apt-get install tesseract-ocr  
-sudo apt install libreoffice
+sudo apt update  
+sudo apt install pst-utils  
+sudo apt install wkhtmltopdf   
+sudo apt-get install tesseract-ocr    
+sudo apt install libreoffice  
 ```
 
 #### AIAdvisor
