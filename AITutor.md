@@ -2,9 +2,9 @@
 * Think: TA, or Teacher's Assistant
 
 ## References
-* Tutor for high schoolers
+* Tutor for high school students
   * https://www.khanacademy.org/
-  * AITutor is similar but for technical training
+  * AITutor is similar but for technical training, and it is different in requirements and design
 * For creating content
   * https://eurekaa.io/
   * A similar capability should be included in the AITutor
@@ -24,7 +24,7 @@
 * All video input is transcribed and converted to text
 * All slide and PDF input converted to text
 * Input is broken into meaningful paragraphs that are neither too large nor too small
-* The paragraphs are stored in a semantic vector ddatabase such as Pinecone
+* The paragraphs are stored in a semantic vector database such as Pinecone
 * The dialog flow can be implemented with multi-agent system like CrewAI
 * One can also borrow some elements of dialog construction from framework RASA
 * The overall success can be implemented with a framework W&B
