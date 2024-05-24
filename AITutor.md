@@ -29,3 +29,6 @@
 * One can also borrow some elements of dialog construction from framework RASA
 * The overall success can be implemented with a framework W&B
 * Scaling to be done in the cloud with functions (Azure or Google) or lambdas (Amazon)
+
+## Waiting list
+* 	cher devey <cherlearningvip@gmail.com>
