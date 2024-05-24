@@ -6,18 +6,18 @@
 * [MS Instruction](https://learn.microsoft.com/en-us/azure/virtual-machines/linux/use-remote-desktop?tabs=azure-cli)
 
 #### Java
-* [Coretto 17](https://docs.aws.amazon.com/corretto/latest/corretto-17-ug/downloads-list.html)
+* [Coretto 17](https://docs.aws.amazon.com/corretto/latest/corretto-17-ug/generic-linux-install.html)
 
 #### FreeEed and AIAdvisor
 
 * On the Desktop
 * Download and unzip latest freeeed_complete_package.zip
 ```shell
-sudo apt update
-sudo apt install pst-utils
-sudo apt install wkhtmltopdf 
-sudo apt-get install tesseract-ocr  
-sudo apt install libreoffice
+sudo apt update  
+sudo apt install pst-utils  
+sudo apt install wkhtmltopdf   
+sudo apt-get install tesseract-ocr    
+sudo apt install libreoffice  
 ```
 
 #### AIAdvisor
