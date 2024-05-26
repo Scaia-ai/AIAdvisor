@@ -20,6 +20,12 @@ sudo apt-get install tesseract-ocr
 sudo apt install libreoffice  
 ```
 
+In the home directory, install `run_on_startup.sh` with the following content
+```shell
+cd /home/azureuser/Desktop/freeeed_complete_pack/
+./start_all.sh
+```
+
 #### AIAdvisor
 
 # Python project setup
@@ -35,10 +41,14 @@ bash Anaconda3-2024.02-1-Linux-x86_64.sh
   * Put the zip file here: `https://shmsoft.s3.amazonaws.com/AIAdvisor.zip`
   * Unzip it on the SKY VM
 
-```shell````
+```shell```
 cd code/python
 ./requirements-install.sh
 ```
+
+```shell```
+pip install openai==0.28
+``` 
 
 * Start AIAdvisor on localhost
 * Review on the VM IP, and AIAdvisor on the VM IP

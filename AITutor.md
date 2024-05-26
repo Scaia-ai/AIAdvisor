@@ -30,12 +30,13 @@
 * The overall success can be implemented with a framework W&B
 * Scaling to be done in the cloud with functions (Azure or Google) or lambdas (Amazon)
 
-* Phase I
-* RAG in Azure take out langchain, 
-* Class - how?
-* Ask questions, not give the answers, but help
-* Ask LLM to help you "To LLM: you are acting as a tutor, not giving answers but helping"
-* You need to practice learning with KhanMigo
+  * Phase I
+  * RAG in Azure take out langchain, 
+  * Class - how?
+  * Ask questions, not give the answers, but help
+  * Ask LLM to help you "To LLM: you are acting as a tutor, not giving answers but helping"
+  * You need to practice learning with KhanMigo
 
 ## Waiting list
-* 	cher devey <cherlearningvip@gmail.com>
+* Cher Devey <cherlearningvip@gmail.com>
+* Tester: Chaim Chesler (rob613@gmail.com)
