@@ -38,5 +38,9 @@
   * You need to practice learning with KhanMigo
 
 ## Waiting list
-* Cher Devey <cherlearningvip@gmail.com>
-* Tester: Chaim Chesler (rob613@gmail.com)
+* Cher Devey <cherlearningvip@gmail.com> (Technical learning)
+* Tester: Chaim Chesler <rob613@gmail.com> (For MosesAI)
+* Keshav Gupta <keshavgupta@knowledgehut.com> (For B2B testing of the idea)
+* Yakir Keinan <yakirk@sela.co.il> (For B2B testing of the idea)
+* Gregg Berretta <onlygb@yahoo.com> (MosesAI) 
+* Miriam Anzovin (miriamanzovin@gmail.com) (For promoting MosesAI)
