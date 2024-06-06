@@ -40,7 +40,7 @@
 ## Waiting list
 * Cher Devey <cherlearningvip@gmail.com> (Technical learning)
 * Tester: Chaim Chesler <rob613@gmail.com> (For MosesAI)
-* Keshav Gupta <keshavgupta@knowledgehut.com> (For B2B testing of the idea)
+* Keshav Gupta <keshavgupta@knowledgehut.com> (For B2B testing of the business idea)
 * Yakir Keinan <yakirk@sela.co.il> (For B2B testing of the idea)
 * Gregg Berretta <onlygb@yahoo.com> (MosesAI) 
 * Miriam Anzovin (miriamanzovin@gmail.com) (For promoting MosesAI)
