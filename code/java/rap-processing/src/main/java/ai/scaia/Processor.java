@@ -20,8 +20,8 @@ public class Processor {
     public static void main(String[] args) throws Exception {
         List<File> files = downloadAllFilesFromAzureBlob();
         processFiles(files);
-        System.out.println("Success {}"+ ProcessingResult.successResults);
-        System.out.println("Failures {}"+ ProcessingResult.failureResults);
+        log.info("Success {}", ProcessingResult.successResults);
+        log.info("Failures {}" , ProcessingResult.failureResults);
     }
 
     private static void processFiles(List<File> files) throws Exception {
