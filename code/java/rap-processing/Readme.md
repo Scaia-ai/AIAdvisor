@@ -24,3 +24,4 @@ This project is a standalone executable designed to process(meaning of processin
 6. **Output Generation**: Finally, the response from OpenAI in the desired format is uploaded to the output container in Azure Blob storage for storage.
 
 7. **Awaiting deployment to Azure GOV**
+8. 
