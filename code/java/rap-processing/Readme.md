@@ -22,3 +22,5 @@ This project is a standalone executable designed to process(meaning of processin
 5. **OpenAI Integration**: Utilizing Azure OpenAI services, the program prompts OpenAI with the prompt provided in [config.properties](src/main/resources/config.properties) for each file.
 
 6. **Output Generation**: Finally, the response from OpenAI in the desired format is uploaded to the output container in Azure Blob storage for storage.
+
+7. **Awaiting deployment to Azure GOV**
