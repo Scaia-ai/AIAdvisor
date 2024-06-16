@@ -25,6 +25,7 @@ public class Processor {
     }
 
     private static void processFiles(List<File> files) throws Exception {
+        log.info("Processing  {} files", files.size());
         for (File file : files) {
             log.info("Processing file {}", file.getAbsolutePath());
             String fileContent = extractFileContent(file);
