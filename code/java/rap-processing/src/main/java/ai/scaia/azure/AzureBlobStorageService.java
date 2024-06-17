@@ -46,7 +46,9 @@ public class AzureBlobStorageService {
                 .connectionString(CONNECTION_STRING)
                 .containerName(INPUT_CONTAINER_NAME)
                 .buildClient();
-
+        log.info("connection string = {}", CONNECTION_STRING);
+        log.info("container name = {}", INPUT_CONTAINER_NAME);
+        log.info("Files found to download {}", containerClient.listBlobs().stream().count());
         return containerClient.listBlobs().stream().map(b -> downloadBlob(containerClient, b.getName())).filter(Objects::nonNull).toList();
 
     }
