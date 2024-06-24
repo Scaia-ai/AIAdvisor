@@ -3,7 +3,8 @@
 
 ## References
 * Tutor in Coursera (Coach), https://www.coursera.org/learn/chatgpt-innovative-teaching/home/module/1
-  * You need to have the beta version of Coach 
+  * You need to have the beta version of Coach. Then you see the image below
+  * ![](images/coach.png)
 * Tutor for high school students
   * https://www.khanacademy.org/
   * AITutor is similar but for technical training, and it is different in requirements and design
