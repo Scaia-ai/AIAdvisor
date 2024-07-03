@@ -1,6 +1,9 @@
 # AI Tutor  
 * Think: TA, or Teacher's Assistant
 
+## Use case
+* The AITutor acts as a teacher's assistant, providing more explanations and challenges and checking the students' understanding.
+* 
 ## References
 * Tutor in Coursera (Coach), https://www.coursera.org/learn/chatgpt-innovative-teaching/home/module/1
   * You need to have the beta version of Coach. Then you see the image below
