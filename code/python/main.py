@@ -1,5 +1,3 @@
-
-
 import assemblyai as aai
 import threading
 import os
