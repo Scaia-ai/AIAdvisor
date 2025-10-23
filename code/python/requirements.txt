@@ -14,3 +14,4 @@ boto3
 gunicorn
 assemblyai
 psutil
+langchain-community
